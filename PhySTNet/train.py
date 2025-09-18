@@ -1,9 +1,11 @@
 import numpy as np
 from torch.utils.data import Dataset
-from predrnnv2_model import PredRNNv2_Model
+from phystnet import phystnet
 import torch
 import torch.nn as nn
 from config import configs
+from regularizer import *
+from constrain_moments import K2M
 from torch.utils.data import DataLoader
 import pickle
 import math
@@ -14,15 +16,17 @@ from torch.optim.lr_scheduler import ReduceLROnPlateau
 class Trainer:
     def __init__(self, configs):
         self.configs = configs
+        self.reg_epoch = configs.reg_epoch
         self.device = configs.device
         torch.manual_seed(5)
-        self.network = PredRNNv2_Model(configs).to(configs.device)
+        self.network = phystnet(configs).to(configs.device)
 
         self.opt = torch.optim.Adam(self.network.parameters(), lr=configs.lr, weight_decay=configs.weight_decay)
         self.lr_scheduler = ReduceLROnPlateau(self.opt, mode='max', factor=0.3, patience=0, verbose=True,
                                               min_lr=0.0001)
         self.z500, self.t850, self.t2m, self.new, self.new2, self.new3 = 'z500', 't850', 't2m', 'new', 'new2', 'new3'
         self.loss = nn.MSELoss()
+        self.epoch = 0
 
     def eva_loss(self, y_pred, y_true, idx):
         if idx == 'z500':
@@ -46,6 +50,9 @@ class Trainer:
                                            scheduled_sampling_ratio=ssr_ratio, train=True)
         self.opt.zero_grad()
         loss = self.loss(sst_pred, torch.cat([input_sst[:,1:].float(),sst_true.float()],1).to(self.device))
+        if self.epoch<self.reg_epoch:
+            mom_loss = moment_regularizer(self.network, K2M_class=K2M, q=6, lamb=1e-3, target_scale=1.0)
+            loss = loss + mom_loss
         loss.backward()
         if configs.gradient_clipping:
             nn.utils.clip_grad_norm_(self.network.parameters(), configs.clipping_threshold)
@@ -97,8 +104,6 @@ class Trainer:
                 if (j+1) % self.configs.display_interval == 0:
                     print('batch training loss: {:.2f}, ssr: {:.5f}'.format(loss, ssr_ratio))
 
-                # increase the number of evaluations in order not to miss the optimal point
-                # which is feasible because of the less training time of ticsformer
                 if (i + 1 >= 6) and (j + 1) % (self.configs.display_interval * 2) == 0:
                     loss_z500_eval_0, loss_t850_eval_0, loss_t2m_eval_0, loss_new_eval_0, loss_new2_eval_0, loss_new3_eval_0 = self.infer(
                         dataset=dataset_eval, dataloader=dataloader_eval)
@@ -189,11 +194,6 @@ if __name__ == '__main__':
     print('Dataset_train Shape:\n', dataset_train.GetDataShape())
     print('Dataset_test Shape:\n', dataset_test.GetDataShape())
 
-    # trainer = Trainer(configs)
-    # trainer.save_configs('config.pkl')
-    # trainer.train(dataset_train, dataset_test, 'checkpoint')
-
-    #########################################################################################################################################
-
- 
-    np.savez('test.npz', test_x=data['test_x'], test_y=data['test_y'],mean=data['mean'], std=data['std'])
+    trainer = Trainer(configs)
+    trainer.save_configs('config.pkl')
+    trainer.train(dataset_train, dataset_test, 'checkpoint')
