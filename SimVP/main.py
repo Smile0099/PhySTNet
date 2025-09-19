@@ -13,7 +13,7 @@ from torch.optim.lr_scheduler import ReduceLROnPlateau
 
 device = configs.device
 model = SimVP(configs).to(configs.device)
-net = torch.load('checkpoint_113.65973567962646.chk')
+net = torch.load('checkpoint_SimVP.chk')
 model.load_state_dict(net['net'])
 model.eval()
 dataloader_eval = DataLoader(dataset_test, batch_size=8, shuffle=False)
