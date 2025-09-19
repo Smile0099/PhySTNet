@@ -13,7 +13,7 @@ from torch.optim.lr_scheduler import ReduceLROnPlateau
 
 device = configs.device
 model = PredRNNv2_Model(configs).to(configs.device)
-net = torch.load('checkpoint_67.95667886734009.chk')
+net = torch.load('checkpoint_PredRNN_V2.chk')
 model.load_state_dict(net['net'])
 model.eval()
 dataloader_eval = DataLoader(dataset_test, batch_size=8, shuffle=False)
