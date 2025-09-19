@@ -13,7 +13,7 @@ import datetime
 
 device = configs.device
 model = StFTForecaster(configs).to(device)
-net = torch.load('checkpoint_100.00003242492676.chk')
+net = torch.load('checkpoint_StFT.chk')
 model.load_state_dict(net['net'])
 model.eval()
 
