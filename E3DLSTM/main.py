@@ -13,7 +13,7 @@ from torch.optim.lr_scheduler import ReduceLROnPlateau
 
 device = configs.device
 model = E3DLSTM_Model(configs).to(configs.device)
-net = torch.load('checkpoint_100.50626754760742.chk')
+net = torch.load('checkpoint_E3DLSTM.chk')
 model.load_state_dict(net['net'])
 model.eval()
 dataloader_eval = DataLoader(dataset_test, batch_size=8, shuffle=False)
