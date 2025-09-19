@@ -13,7 +13,7 @@ from torch.optim.lr_scheduler import ReduceLROnPlateau
 
 device = configs.device
 model = MIM_Model(configs).to(configs.device)
-net = torch.load('checkpoint_68.03604030609131.chk')
+net = torch.load('checkpoint_MIM.chk')
 model.load_state_dict(net['net'])
 model.eval()
 dataloader_eval = DataLoader(dataset_test, batch_size=8, shuffle=False)
