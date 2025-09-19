@@ -15,8 +15,8 @@ from torch.optim.lr_scheduler import ReduceLROnPlateau
 
 
 device = configs.device
-model = PredRNNv2_Model(configs).to(configs.device)
-net = torch.load('checkpoint_31.642733335494995.chk')
+model = phystnet(configs).to(configs.device)
+net = torch.load('checkpoint_PhySTNet.chk')
 model.load_state_dict(net['net'])
 model.eval()
 dataloader_eval = DataLoader(dataset_test, batch_size=8, shuffle=False)
