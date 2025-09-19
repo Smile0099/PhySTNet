@@ -14,7 +14,7 @@ from torch.optim.lr_scheduler import ReduceLROnPlateau
 device = configs.device
 model = ConvTTLSTMNet(configs.order, configs.steps, configs.ranks, configs.kernel_size,configs.bias, configs.hidden_channels, configs.layers_per_block,configs.skip_stride, configs.input_dim, configs.output_dim).to(configs.device)
 
-net = torch.load('checkpoint_84.29003524780273.chk')
+net = torch.load('checkpoint_ConvTTLSTM.chk')
 model.load_state_dict(net['net'])
 model.eval()
 dataloader_eval = DataLoader(dataset_test, batch_size=8, shuffle=False)
